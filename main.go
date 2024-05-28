@@ -26,14 +26,46 @@ func main() {
 	fmt.Printf("%v\n", time.Since(startTime).Seconds())
 }
 
+type Filer struct {
+	Artifacts map[string]string
+}
+
 func IndexFiles(wd string) {
 	if wd != "" {
-		artifacts := make(map[string]string, 0)
+		var mu sync.Mutex
+		var wg sync.WaitGroup
 
+		filer := &Filer{
+			Artifacts: map[string]string{},
+		}
+
+		numWorkers := runtime.GOMAXPROCS(0)
+
+		jobs := make(chan string)
+
+		worker := func(jobs <-chan string, wg *sync.WaitGroup, mu *sync.Mutex, filer *Filer) {
+			defer wg.Done()
+
+			for path := range jobs {
+				hash := hex.EncodeToString(FileHash(path))
+
+				mu.Lock()
+				filer.Artifacts[path] = hash
+				mu.Unlock()
+			}
+		}
+
+		// Start the workers
+		for i := 0; i < numWorkers; i++ {
+			wg.Add(1)
+			go worker(jobs, &wg, &mu, filer)
+		}
+
+		// Start indexing
 		err := filepath.Walk(wd, func(path string, info fs.FileInfo, err error) error {
 
 			if !info.IsDir() && info.Mode()&fs.ModeSymlink == 0 {
-				artifacts[path] = path
+				jobs <- path
 			}
 
 			return nil
@@ -42,43 +74,9 @@ func IndexFiles(wd string) {
 			log.Fatal(err)
 		}
 
-		numWorkers := runtime.GOMAXPROCS(0)
-		jobs := make(chan string, len(artifacts))
-		results := make(chan int, len(artifacts))
-
-		var mu sync.Mutex
-
-		worker := func(jobs <-chan string, results chan<- int) {
-
-			for path := range jobs {
-				hash := hex.EncodeToString(FileHash(path))
-
-				mu.Lock()
-				artifacts[path] = hash
-				results <- 1
-				mu.Unlock()
-			}
-		}
-
-		// Start the workers
-		for i := 0; i < numWorkers; i++ {
-			go worker(jobs, results)
-		}
-
-		for key := range artifacts {
-			mu.Lock()
-			jobs <- key
-			mu.Unlock()
-		}
-
-		// Close the jobs channel to signal the workers to exit
 		close(jobs)
 
-		for a := 1; a <= len(artifacts); a++ {
-			<-results
-		}
-
-		fmt.Printf("%v\n", len(artifacts))
+		wg.Wait()
 
 		// No concurrency:
 		//
