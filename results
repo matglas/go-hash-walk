@@ -1,0 +1,18 @@
+BenchmarkHash/input_size_100-10                      157           7893622 ns/op         3389820 B/op       1325 allocs/op
+BenchmarkHash/input_size_100-10                      348           3636642 ns/op         3393426 B/op       1342 allocs/op
+BenchmarkHash/input_size_100-10         	         403    	   3510335 ns/op	 3393029 B/op	    1345 allocs/op
+BenchmarkHash/input_size_100-10         	         474	       2426380 ns/op	 3390537 B/op	    1343 allocs/op
+
+
+
+BenchmarkHash/input_size_1000-10                      15          77186064 ns/op        33939384 B/op      13050 allocs/op
+BenchmarkHash/input_size_1000-10                      39          26351321 ns/op        33964864 B/op      13070 allocs/op
+BenchmarkHash/input_size_1000-10        	          44    	  30223248 ns/op	33964135 B/op	   13073 allocs/op
+BenchmarkHash/input_size_1000-10        	          43    	  26194372 ns/op	33940613 B/op	   13079 allocs/op
+
+
+BenchmarkHash/input_size_10000-10                      1        5933478291 ns/op        339299288 B/op    130233 allocs/op
+BenchmarkHash/input_size_10000-10                      3         729811583 ns/op        339552640 B/op    130299 allocs/op
+BenchmarkHash/input_size_10000-10       	           3    	 376394597 ns/op	339554048 B/op	  130307 allocs/op
+BenchmarkHash/input_size_10000-10       	           4    	 264015386 ns/op	339312068 B/op	  130368 allocs/op
+
